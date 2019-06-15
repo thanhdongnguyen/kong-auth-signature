@@ -324,7 +324,7 @@ function transform_json_body(conf, buffered_data)
       return cjson.encode({
             error = {
                 code = 400,
-                message = "401 Unauthorized"
+                message = "400 Bad Request"
             }
         })
     end
@@ -357,7 +357,7 @@ end
 function doAuthenticationSignature(conf)
 
     if not conf.header_key or not conf.body_key then
-        return false, {status = 401, message = "401 Unauthorized"}
+        return false, {status = 400, message = "400 Bad Request"}
     end
 
     local api_key = kong.request.get_header(conf.header_key)
