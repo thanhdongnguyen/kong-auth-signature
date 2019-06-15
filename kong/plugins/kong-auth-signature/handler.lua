@@ -417,10 +417,10 @@ function Auth:access(conf)
             message = "zxczxc",
             status = "asdasdasd"
         })
-        return kong.response.exit(200, {
-            message = err.message,
-            status = err.status
-        })
+        -- return kong.response.exit(200, {
+        --     message = err.message,
+        --     status = err.status
+        -- })
     end
 
     
