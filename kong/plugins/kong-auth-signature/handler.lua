@@ -400,7 +400,7 @@ end
 function Auth:access(conf)
 
     Auth.super.access(self)
-
+ 
 
     if isExist(conf.methods, kong.request.get_method()) == false then
         return kong.response.exit(200, {
@@ -410,6 +410,9 @@ function Auth:access(conf)
     end
 
     local ok, err = doAuthentication(conf)
+
+
+    kong.log("check-signature", " | ", ok, " | ", err)
 
     if err ~= nil then
         return kong.response.exit(200, {
