@@ -400,12 +400,13 @@ function Auth:access(conf)
 
     Auth.super.access(self)
  
+    
+    local ok, err = doAuthentication(conf)
+
     return kong.response.exit(200, {
         message = "dongnt",
         status = 200
     })
-    -- local ok, err = doAuthentication(conf)
-
 
     -- kong.log("check-signature", " | ", ok, " | ", err)
 
