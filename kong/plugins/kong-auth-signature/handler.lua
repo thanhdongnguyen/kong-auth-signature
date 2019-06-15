@@ -354,48 +354,47 @@ function is_json_body(content_type)
     return content_type and find(lower(content_type), "application/json", nil, true)
 end
 
-function doAuthentication(conf)
+function doAuthenticationSignature(conf)
 
-    return false, {status = 401, message = "401 Unauthorized"} 
-    -- if not conf.header_key or not conf.body_key then
-    --     return false, {status = 401, message = "401 Unauthorized"}
-    -- end
+    if not conf.header_key or not conf.body_key then
+        return false, {status = 401, message = "401 Unauthorized"}
+    end
 
-    -- local api_key = kong.request.get_header(conf.header_key)
-    -- local body, err = parseBody(conf)
+    local api_key = kong.request.get_header(conf.header_key)
+    local body, err = parseBody(conf)
 
 
-    -- if err or not api_key or not body[conf.body_key] then
-    --     return false, {status = 401, message = "401 Unauthorized"}
-    -- end
+    if err or not api_key or not body[conf.body_key] then
+        return false, {status = 401, message = "401 Unauthorized"}
+    end
 
-    -- if not conf.api_key_1 and not conf.api_key_2 and not conf.api_key_3 and not conf.api_key_4 and not conf.api_key_5 then
-    --     return false, { status = 401, message = "401 Unauthorized" }
-    -- end
+    if not conf.api_key_1 and not conf.api_key_2 and not conf.api_key_3 and not conf.api_key_4 and not conf.api_key_5 then
+        return false, { status = 401, message = "401 Unauthorized" }
+    end
 
-    -- local secret_key = ""
-    -- if conf.api_key_2 == api_key then
-    --     secret_key = conf.secret_key_2
-    -- elseif conf.api_key_1 == api_key then
-    --     secret_key = conf.secret_key_1
-    -- elseif conf.api_key_3 == api_key then
-    --     secret_key = conf.secret_key_3
-    -- elseif conf.api_key_4 == api_key then
-    --     secret_key = conf.secret_key_4
-    -- elseif conf.api_key_5 == api_key then
-    --     secret_key = conf.secret_key_5
-    -- else
-    --     return false, { status = 401, message = "401 Unauthorized" }
-    -- end
+    local secret_key = ""
+    if conf.api_key_2 == api_key then
+        secret_key = conf.secret_key_2
+    elseif conf.api_key_1 == api_key then
+        secret_key = conf.secret_key_1
+    elseif conf.api_key_3 == api_key then
+        secret_key = conf.secret_key_3
+    elseif conf.api_key_4 == api_key then
+        secret_key = conf.secret_key_4
+    elseif conf.api_key_5 == api_key then
+        secret_key = conf.secret_key_5
+    else
+        return false, { status = 401, message = "401 Unauthorized" }
+    end
 
-    -- local verify_sign = createSignature(secret_key, body, conf)
+    local verify_sign = createSignature(secret_key, body, conf)
 
-    -- kong.log("veify_sign", " | ", verify_sign, " | ", body.signature)
-    -- if verify_sign ~= body.signature then
-    --     return false, { status = 400, message = "Invalid DataSign." }
-    -- end
+    kong.log("veify_sign", " | ", verify_sign, " | ", body.signature)
+    if verify_sign ~= body.signature then
+        return false, { status = 400, message = "Invalid DataSign." }
+    end
 
-    -- return true, nil
+    return true, nil
 end
 
 function Auth:access(conf)
@@ -403,7 +402,7 @@ function Auth:access(conf)
     Auth.super.access(self)
  
     
-    local ok, err = doAuthentication(conf)
+    local ok, err = doAuthenticationSignature(conf)
 
  
 
