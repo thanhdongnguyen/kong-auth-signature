@@ -14,12 +14,7 @@ return {
                 }},
                 {body_key = {
                     type = "string"
-                }},
-                {methods = {
-                    type = "set",
-                    elements = { type = "string" },
-                    default = {}
-                }},
+                }}, 
                 {api_key_1 = {
                     type = "string"
                 }},
