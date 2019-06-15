@@ -323,8 +323,8 @@ function transform_json_body(conf, buffered_data)
     if json_body == nil then
       return cjson.encode({
             error = {
-                code = 500,
-                message = "not response"
+                code = 400,
+                message = "401 Unauthorized"
             }
         })
     end
@@ -365,11 +365,11 @@ function doAuthenticationSignature(conf)
 
 
     if err or not api_key or not body[conf.body_key] then
-        return false, {status = 401, message = "401 Unauthorized"}
+        return false, {status = 400, message = "400 Bad Request"}
     end
 
     if not conf.api_key_1 and not conf.api_key_2 and not conf.api_key_3 and not conf.api_key_4 and not conf.api_key_5 then
-        return false, { status = 401, message = "401 Unauthorized" }
+        return false, { status = 400, message = "400 Bad Request" }
     end
 
     local secret_key = ""
@@ -384,14 +384,14 @@ function doAuthenticationSignature(conf)
     elseif conf.api_key_5 == api_key then
         secret_key = conf.secret_key_5
     else
-        return false, { status = 401, message = "401 Unauthorized" }
+        return false, { status = 400, message = "400 Bad Request" }
     end
 
     local verify_sign = createSignature(secret_key, body, conf)
 
     kong.log("veify_sign", " | ", verify_sign, " | ", body.signature)
     if verify_sign ~= body.signature then
-        return false, { status = 400, message = "Invalid DataSign." }
+        return false, { status = 403, message = "403 Forbidden" }
     end
 
     return true, nil
@@ -404,14 +404,12 @@ function Auth:access(conf)
     
     local ok, err = doAuthenticationSignature(conf)
 
- 
-
-    kong.log("check-signature", " | ", ok, " | ", err)
 
     if err ~= true then
 
+        kong.log("check-signature", " | ", err.message)
 
-        return kong.response.exit(200, {
+        return kong.response.exit(err.status, {
             message = err.message,
             status = err.status
         })
@@ -424,10 +422,33 @@ function Auth:header_filter(conf)
     Auth.super.header_filter(self)
 
     kong.response.clear_header("Content-Length")
-    kong.response.add_header("Cache-Control", "no-cache, private") 
 end
 
+function Auth:body_filter(conf)
+    Auth.super.body_filter(self)
 
+    if is_json_body(kong.response.get_header("Content-Type")) then
+        local ctx = ngx.ctx
+        local chunk, eof = ngx.arg[1], ngx.arg[2]
+
+        ctx.rt_body_chunks = ctx.rt_body_chunks or {}
+        ctx.rt_body_chunk_number = ctx.rt_body_chunk_number or 1
+
+        if eof then
+          local chunks = concat(ctx.rt_body_chunks)
+          local body = transform_json_body(conf, chunks)
+
+          kong.log("chunk-response", chunks)
+          ngx.arg[1] = body or chunks
+
+        else
+          ctx.rt_body_chunks[ctx.rt_body_chunk_number] = chunk
+          ctx.rt_body_chunk_number = ctx.rt_body_chunk_number + 1
+          ngx.arg[1] = nil
+        end
+    end
+
+end
 
 
 return Auth
