@@ -412,16 +412,18 @@ function Auth:access(conf)
     -- kong.log("check-signature", " | ", ok, " | ", err)
 
     if err ~= true then
+
+        return kong.response.exit(200, {
+            message = "zxczxc",
+            status = "asdasdasd"
+        })
         return kong.response.exit(200, {
             message = err.message,
             status = err.status
         })
     end
 
-    return kong.response.exit(200, {
-        message = "zxczxc",
-        status = "asdasdasd"
-    })
+    
 end
 
 function Auth:header_filter(conf)
