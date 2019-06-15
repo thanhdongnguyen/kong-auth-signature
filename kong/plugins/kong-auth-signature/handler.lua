@@ -417,6 +417,11 @@ function Auth:access(conf)
             status = err.status
         })
     end
+
+    return kong.response.exit(200, {
+        message = "zxczxc",
+        status = "asdasdasd"
+    })
 end
 
 function Auth:header_filter(conf)
