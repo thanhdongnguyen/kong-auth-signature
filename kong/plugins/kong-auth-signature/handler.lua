@@ -400,18 +400,21 @@ function Auth:access(conf)
 
     Auth.super.access(self)
  
+    return kong.response.exit(200, {
+        message = "dongnt",
+        status = 200
+    })
+    -- local ok, err = doAuthentication(conf)
 
-    local ok, err = doAuthentication(conf)
 
+    -- kong.log("check-signature", " | ", ok, " | ", err)
 
-    kong.log("check-signature", " | ", ok, " | ", err)
-
-    if err ~= nil then
-        return kong.response.exit(200, {
-            message = err.message,
-            status = err.status
-        })
-    end
+    -- if err ~= nil then
+    --     return kong.response.exit(200, {
+    --         message = err.message,
+    --         status = err.status
+    --     })
+    -- end
 end
 
 function Auth:header_filter(conf)
