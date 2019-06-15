@@ -404,10 +404,10 @@ function Auth:access(conf)
     
     local ok, err = doAuthentication(conf)
 
-    return kong.response.exit(200, {
-        message = ok,
-        status = err
-    })
+    -- return kong.response.exit(200, {
+    --     message = ok,
+    --     status = err
+    -- })
 
     -- kong.log("check-signature", " | ", ok, " | ", err)
 
