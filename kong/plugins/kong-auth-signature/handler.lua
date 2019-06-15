@@ -414,7 +414,7 @@ function Auth:access(conf)
     if err ~= true then
 
         return kong.response.exit(200, {
-            message = "zxczxc",
+            message = err.message,
             status = "asdasdasd"
         })
         -- return kong.response.exit(200, {
