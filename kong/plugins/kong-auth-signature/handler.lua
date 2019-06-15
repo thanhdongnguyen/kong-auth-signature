@@ -365,7 +365,7 @@ function doAuthentication(conf)
 
 
     if err or not api_key or not body[conf.body_key] then
-        return "", {status = 401, message = "401 Unauthorized"}
+        return false, {status = 401, message = "401 Unauthorized"}
     end
 
     if not conf.api_key_1 and not conf.api_key_2 and not conf.api_key_3 and not conf.api_key_4 and not conf.api_key_5 then
@@ -404,19 +404,19 @@ function Auth:access(conf)
     
     local ok, err = doAuthentication(conf)
 
-    return kong.response.exit(200, {
-        message = "dongnt",
-        status = 200
-    })
+    -- return kong.response.exit(200, {
+    --     message = "dongnt",
+    --     status = 200
+    -- })
 
     -- kong.log("check-signature", " | ", ok, " | ", err)
 
-    -- if err ~= nil then
-    --     return kong.response.exit(200, {
-    --         message = err.message,
-    --         status = err.status
-    --     })
-    -- end
+    if err ~= true then
+        return kong.response.exit(200, {
+            message = err.message,
+            status = err.status
+        })
+    end
 end
 
 function Auth:header_filter(conf)
