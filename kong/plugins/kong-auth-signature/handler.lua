@@ -20,8 +20,7 @@ local gsub = string.gsub
 local match = string.match
 local lower = string.lower
 
-
-Auth.PRIORITY = 1000
+Auth.VERSION = "0.1.0-3"
 
 function Auth:new()
     Auth.super.new(self, "kong-auth-signature")
@@ -402,8 +401,6 @@ function Auth:access(conf)
     Auth.super.access(self)
  
 
-
-
     local ok, err = doAuthentication(conf)
 
 
@@ -425,30 +422,6 @@ function Auth:header_filter(conf)
 end
 
 
-function Auth:body_filter(conf)
-    Auth.super.body_filter(self)
 
-    if is_json_body(kong.response.get_header("Content-Type")) then
-        local ctx = ngx.ctx
-        local chunk, eof = ngx.arg[1], ngx.arg[2]
-
-        ctx.rt_body_chunks = ctx.rt_body_chunks or {}
-        ctx.rt_body_chunk_number = ctx.rt_body_chunk_number or 1
-
-        if eof then
-          local chunks = concat(ctx.rt_body_chunks)
-          local body = transform_json_body(conf, chunks)
-
-          kong.log("chunk-response-dongnt", chunks)
-          ngx.arg[1] = body or chunks
-
-        else
-          ctx.rt_body_chunks[ctx.rt_body_chunk_number] = chunk
-          ctx.rt_body_chunk_number = ctx.rt_body_chunk_number + 1
-          ngx.arg[1] = nil
-        end
-    end
-
-end
 
 return Auth
