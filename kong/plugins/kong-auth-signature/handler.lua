@@ -21,6 +21,7 @@ local match = string.match
 local lower = string.lower
 
 Auth.VERSION = "0.1.0-3"
+Auth.PRIORITY = 999
 
 function Auth:new()
     Auth.super.new(self, "kong-auth-signature")
