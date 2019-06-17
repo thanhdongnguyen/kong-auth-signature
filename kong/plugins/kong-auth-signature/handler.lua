@@ -292,7 +292,7 @@ function sortKeySignature( args, conf )
     table.sort( args )
 
     for _, v in pairs(index) do
-        table.concat( result, args[v] )
+        table.insert( result, table.maxn(result), args[v] )
     end
 
     return result
