@@ -299,7 +299,7 @@ function sortKey( args, conf )
     return result
 end
 
-function createSignature(key, args, conf)
+function createSignatureAuth(key, args, conf)
 
     local queryString = ""
     local sargs = sortKey(args, conf)
@@ -389,7 +389,7 @@ function doAuthenticationSignature(conf)
         return false, { status = 400, message = "400 Bad Request" }
     end
 
-    local verify_sign = createSignature(secret_key, body, conf)
+    local verify_sign = createSignatureAuth(secret_key, body, conf)
 
     kong.log("veify_sign", " | ", verify_sign, " | ", body.signature)
     if verify_sign ~= body.signature then
