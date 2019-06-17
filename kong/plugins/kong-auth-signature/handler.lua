@@ -275,7 +275,7 @@ function parseBody(conf)
 end
 
 
-function sortKey( args, conf )
+function sortKeySignature( args, conf )
     local index = {}
     local result = {}
 
@@ -302,7 +302,7 @@ end
 function createSignatureAuth(key, args, conf)
 
     local queryString = ""
-    local sargs = sortKey(args, conf)
+    local sargs = sortKeySignature(args, conf)
     for _, v in pairs(sargs) do
 
         queryString = queryString .. v
