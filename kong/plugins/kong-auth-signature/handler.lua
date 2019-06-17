@@ -286,7 +286,7 @@ function sortKeySignature( args, conf )
         end
     end
 
-    table.sort(index, function(a,b) return a>b end )
+    table.sort(index)
 
 
     for _, v in pairs(index) do
