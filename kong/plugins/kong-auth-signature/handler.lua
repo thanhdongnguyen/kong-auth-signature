@@ -407,7 +407,7 @@ function Auth:access(conf)
     local ok, err = doAuthenticationSignature(conf)
 
 
-    if err ~= true then
+    if err ~= nil then
 
         kong.log("check-signature", " | ", err.message)
 
