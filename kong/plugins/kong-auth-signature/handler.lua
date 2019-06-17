@@ -284,12 +284,10 @@ function sortKeySignature( args, conf )
         if string.lower(conf.body_key) ~= string.lower(_) then
             table.insert(index, _)
         end
-
     end
 
+    table.sort(index, function(a,b) return a>b end )
 
-
-    table.sort( args, function(a,b) return a>b end )
 
     for _, v in pairs(index) do
         table.insert( result, args[v] )
