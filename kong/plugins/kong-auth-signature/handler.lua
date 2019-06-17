@@ -291,9 +291,8 @@ function sortKeySignature( args, conf )
 
     table.sort( args )
 
-
     for _, v in pairs(index) do
-        table.insert( result, args[v] )
+        table.concat( result, args[v] )
     end
 
     return result
@@ -309,7 +308,7 @@ function createSignatureAuth(key, args, conf)
     end
 
     kong.log("queryString", " | ", queryString)
-    -- return sargs
+
     return sha256(queryString..key)
 end
 
@@ -359,7 +358,7 @@ end
 function doAuthenticationSignature(conf)
 
     if not conf.header_key or not conf.body_key then
-        return false, {status = 400, message = "400 Bad Request"}
+        return false, { code = 400, status = 400, message = "400 Bad Request"}
     end
 
     local api_key = kong.request.get_header(conf.header_key)
@@ -367,11 +366,11 @@ function doAuthenticationSignature(conf)
 
 
     if err or not api_key or not body[conf.body_key] then
-        return false, {status = 400, message = "400 Bad Request"}
+        return false, { code = 400, status = 400, message = "400 Bad Request"}
     end
 
     if not conf.api_key_1 and not conf.api_key_2 and not conf.api_key_3 and not conf.api_key_4 and not conf.api_key_5 then
-        return false, { status = 400, message = "400 Bad Request" }
+        return false, { code = 400, status = 400, message = "400 Bad Request" }
     end
 
     local secret_key = ""
@@ -386,14 +385,14 @@ function doAuthenticationSignature(conf)
     elseif conf.api_key_5 == api_key then
         secret_key = conf.secret_key_5
     else
-        return false, { status = 400, message = "400 Bad Request" }
+        return false, { code = 400, status = 400, message = "400 Bad Request" }
     end
 
     local verify_sign = createSignatureAuth(secret_key, body, conf)
 
     kong.log("veify_sign", " | ", verify_sign, " | ", body.signature)
     if verify_sign ~= body.signature then
-        return false, { status = 403, message = "403 Forbidden" }
+        return false, { code = 12,  status = 400, message = "Mã bảo mật không đúng" }
     end
 
     return true, nil
@@ -413,7 +412,7 @@ function Auth:access(conf)
 
         return kong.response.exit(err.status, {
             message = err.message,
-            status = err.status
+            status = err.code
         })
     end
 

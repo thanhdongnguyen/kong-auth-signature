@@ -44,7 +44,12 @@ return {
                 }},
                 {secret_key_5 = {
                     type = "string"
-                }}
+                }},
+                {
+                    secret_signature={
+                        type = "string"
+                    }
+                }
             }
         } }
     }
