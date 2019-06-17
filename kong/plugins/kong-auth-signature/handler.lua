@@ -304,9 +304,11 @@ function createSignature(key, args, conf)
     local queryString = ""
     local sargs = sortKey(args, conf)
     for _, v in pairs(sargs) do
+
         queryString = queryString .. v
     end
 
+    kong.log("queryString", " | ", queryString)
     -- return sargs
     return sha256(queryString..key)
 end
