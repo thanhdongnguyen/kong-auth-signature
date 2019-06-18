@@ -401,10 +401,11 @@ function doAuthenticationSignature(conf)
         return false, { code = 400, status = 400, message = "400 Bad Request" }
     end
 
+    local signature = body.signature
     local verify_sign = createSignatureAuth(secret_key, body, conf)
 
-    kong.log("veify_sign", " | ", verify_sign, " | ", body.signature)
-    if verify_sign ~= body.signature then
+    kong.log("veify_sign", " | ", verify_sign, " | ", signature)
+    if verify_sign ~= signature then
         return false, { code = 12,  status = 400, message = "Mã bảo mật không đúng" }
     end
 
