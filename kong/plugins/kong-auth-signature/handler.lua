@@ -310,21 +310,16 @@ function createSignatureAuth(key, args, conf)
 
     local method = string.lower(kong.request.get_method())
     local signature = tostring(sha256(queryString .. conf.secret_signature))
-
+    args["signature"] = signature
 
     kong.log("queryString", " | ", queryString, " | ", "signature", " | ", signature)
 
     if method == "get" then
 
-        kong.service.request.set_query({
-            signature = signature
-        })
+        kong.service.request.set_query(args)
     elseif method == "post" then
 
-
-        kong.service.request.set_body({
-            signature = signature
-        })
+        kong.service.request.set_body(args)
     end
 
     return sha256(queryString..key)
