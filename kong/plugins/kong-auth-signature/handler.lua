@@ -20,7 +20,7 @@ local gsub = string.gsub
 local match = string.match
 local lower = string.lower
 
-Auth.VERSION = "0.1.0-3"
+Auth.VERSION = "0.1.0-4"
 Auth.PRIORITY = 999
 
 function Auth:new()
@@ -305,8 +305,6 @@ function createSignatureAuth(key, args, conf)
         queryString = queryString .. v
     end
 
-    
-
 
     local method = string.lower(kong.request.get_method())
     local signature = tostring(sha256(queryString .. conf.secret_signature))
@@ -330,38 +328,6 @@ local function read_json_body(body)
     if body then
       return cjson.decode(body)
     end
-end
-
-function transform_json_body(conf, buffered_data)
-    local json_body = read_json_body(buffered_data)
-    if json_body == nil then
-      return cjson.encode({
-            error = {
-                code = 400,
-                message = "400 Bad Request"
-            }
-        })
-    end
-
-
-    if json_body["message"] and json_body["status"] then
-        return cjson.encode({
-            error = {
-                code = json_body["status"],
-                message = json_body["message"]
-            }
-        })
-    end
-
-    if json_body["message"] then
-        return cjson.encode({
-            error = {
-                code = 500,
-                message = json_body["message"]
-            }
-        })
-    end
-    return cjson.encode(json_body)
 end
 
 function is_json_body(content_type)
@@ -415,8 +381,8 @@ end
 function Auth:access(conf)
 
     Auth.super.access(self)
- 
-    
+
+
     local ok, err = doAuthenticationSignature(conf)
 
 
@@ -430,40 +396,12 @@ function Auth:access(conf)
         })
     end
 
-    
-end
-
-function Auth:header_filter(conf)
-    Auth.super.header_filter(self)
-
-    kong.response.clear_header("Content-Length")
-end
-
-function Auth:body_filter(conf)
-    Auth.super.body_filter(self)
-
-    if is_json_body(kong.response.get_header("Content-Type")) then
-        local ctx = ngx.ctx
-        local chunk, eof = ngx.arg[1], ngx.arg[2]
-
-        ctx.rt_body_chunks = ctx.rt_body_chunks or {}
-        ctx.rt_body_chunk_number = ctx.rt_body_chunk_number or 1
-
-        if eof then
-          local chunks = concat(ctx.rt_body_chunks)
-          local body = transform_json_body(conf, chunks)
-
-          kong.log("chunk-response", chunks)
-          ngx.arg[1] = body or chunks
-
-        else
-          ctx.rt_body_chunks[ctx.rt_body_chunk_number] = chunk
-          ctx.rt_body_chunk_number = ctx.rt_body_chunk_number + 1
-          ngx.arg[1] = nil
-        end
-    end
 
 end
+
+
+
+
 
 
 return Auth
