@@ -3,6 +3,7 @@ local constants = require "kong.constants"
 local multipart = require "multipart"
 local json = require "json"
 local cjson = require "cjson.safe"
+local resty_sha256 = require "resty.sha256"
 
 local Auth = BasePlugin:extend()
 local kong = kong
@@ -236,7 +237,11 @@ local function sha256(msg)
             num2s(H[5], 4) .. num2s(H[6], 4) .. num2s(H[7], 4) .. num2s(H[8], 4))
 end
 
-
+local function sha256Signature(msg):
+    local sha256 = resty_sha256:new()
+    sha256:update(msg)
+    return sha256:final()
+end
 
 function parseBody(conf)
 
@@ -305,9 +310,8 @@ function createSignatureAuth(key, args, conf)
         queryString = queryString .. v
     end
 
-
     local method = string.lower(kong.request.get_method())
-    local signature = tostring(sha256(queryString .. conf.secret_signature))
+    local signature = tostring(sha256Signature(queryString .. conf.secret_signature))
     args["signature"] = signature
 
     kong.log("queryString", " | ", queryString, " | ", "signature", " | ", signature)
@@ -320,7 +324,7 @@ function createSignatureAuth(key, args, conf)
         kong.service.request.set_body(args)
     end
 
-    return sha256(queryString..key)
+    return sha256Signature(queryString..key)
 end
 
 
@@ -333,6 +337,42 @@ end
 function is_json_body(content_type)
     return content_type and find(lower(content_type), "application/json", nil, true)
 end
+
+function transform_json_body_response(conf, buffered_data)
+    local json_body = read_json_body(buffered_data)
+    if json_body == nil then
+      return cjson.encode({
+            success = false,
+            error = {
+                code = 400,
+                message = "400 Bad Request"
+            }
+        })
+    end
+
+    if json_body["message"] and json_body["status"] then
+        return cjson.encode({
+            success = false,
+            error = {
+                code = json_body["status"],
+                message = json_body["message"]
+            }
+        })
+    end
+
+    if json_body["message"] then
+        return cjson.encode({
+            success = false,
+            error = {
+                code = 500,
+                message = json_body["message"]
+            }
+        })
+    end
+    return buffered_data
+    -- return cjson.encode(json_body)
+end
+
 
 function doAuthenticationSignature(conf)
 
@@ -372,7 +412,7 @@ function doAuthenticationSignature(conf)
 
     kong.log("veify_sign", " | ", verify_sign, " | ", signature)
     if verify_sign ~= signature then
-        return false, { code = 12,  status = 400, message = "Mã bảo mật không đúng" }
+        return false, { code = 400,  status = 400, message = "Chữ ký bảo mật không đúng" }
     end
 
     return true, nil
@@ -400,7 +440,37 @@ function Auth:access(conf)
 end
 
 
+function Auth:header_filter(conf)
+    Auth.super.header_filter(self)
 
+    kong.response.clear_header("Content-Length")
+end
+
+function Auth:body_filter(conf)
+    Auth.super.body_filter(self)
+
+    if is_json_body(kong.response.get_header("Content-Type")) then
+        local ctx = ngx.ctx
+        local chunk, eof = ngx.arg[1], ngx.arg[2]
+
+        ctx.rt_body_chunks = ctx.rt_body_chunks or {}
+        ctx.rt_body_chunk_number = ctx.rt_body_chunk_number or 1
+
+        if eof then
+          local chunks = concat(ctx.rt_body_chunks)
+          local body = transform_json_body_response(conf, chunks)
+
+          kong.log("chunk_response", chunks)
+          ngx.arg[1] = body or chunks
+
+        else
+          ctx.rt_body_chunks[ctx.rt_body_chunk_number] = chunk
+          ctx.rt_body_chunk_number = ctx.rt_body_chunk_number + 1
+          ngx.arg[1] = nil
+        end
+    end
+
+end
 
 
 
