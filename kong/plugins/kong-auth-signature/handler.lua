@@ -36,9 +36,9 @@ function Auth:new()
 end
 
 
-local function hex_encode(str) -- From prosody's util.hex
+local function hex_encode(str)
     return (str:gsub(".", CHAR_TO_HEX))
-  end
+end
 
 local function sha256Signature(msg)
     local sha256 = resty_sha256:new()
@@ -131,7 +131,6 @@ function createSignatureAuth(key, args, conf)
     return sha256Signature(queryString..key)
 end
 
-
 local function read_json_body(body)
     if body then
       return cjson.decode(body)
@@ -154,25 +153,7 @@ function transform_json_body_response(conf, buffered_data)
         })
     end
 
-    if json_body["message"] and json_body["status"] then
-        return cjson.encode({
-            success = false,
-            error = {
-                code = json_body["status"],
-                message = json_body["message"]
-            }
-        })
-    end
 
-    if json_body["message"] then
-        return cjson.encode({
-            success = false,
-            error = {
-                code = 500,
-                message = json_body["message"]
-            }
-        })
-    end
     return buffered_data
 end
 
@@ -185,7 +166,6 @@ function doAuthenticationSignature(conf)
 
     local api_key = kong.request.get_header(conf.header_key)
     local body, err = parseBody(conf)
-
 
     if err or not api_key or not body[conf.body_key] then
         return false, { code = 400, status = 400, message = "400 Bad Request"}
@@ -213,7 +193,7 @@ function doAuthenticationSignature(conf)
     local signature = body.signature
     local verify_sign = createSignatureAuth(secret_key, body, conf)
 
-    kong.log("veify_sign", " | ", verify_sign, " | ", signature)
+    kong.log("verify_sign", " | ", verify_sign, " | ", signature)
     if verify_sign ~= signature then
         return false, { code = 400,  status = 400, message = "Chữ ký bảo mật không đúng" }
     end
@@ -231,7 +211,7 @@ function Auth:access(conf)
 
     if err ~= nil then
 
-        kong.log("check-signature", " | ", err.message)
+        kong.log("check_signature", " | ", err.message)
 
         return kong.response.exit(err.status, {
             message = err.message,
