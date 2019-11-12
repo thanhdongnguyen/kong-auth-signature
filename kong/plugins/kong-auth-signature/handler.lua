@@ -4,6 +4,7 @@ local multipart = require "multipart"
 local json = require "json"
 local cjson = require "cjson.safe"
 local resty_sha256 = require "resty.sha256"
+local openssl_digest = require "openssl.digest"
 
 local Auth = BasePlugin:extend()
 local kong = kong
@@ -254,6 +255,10 @@ local function sha256Signature(msg)
     return hex_encode(sha256:final())
 end
 
+local function sha256Openssl(msg)
+    return openssl_digest.new("sha256"):update(msg)
+end
+
 function parseBody(conf)
 
     local method = string.lower(kong.request.get_method())
@@ -322,7 +327,7 @@ function createSignatureAuth(key, args, conf)
     end
 
     local method = string.lower(kong.request.get_method())
-    local signature = tostring(sha256Signature(queryString .. conf.secret_signature))
+    local signature = tostring(sha256Openssl(queryString .. conf.secret_signature))
     args["signature"] = signature
 
     kong.log("queryString", " | ", queryString, " | ", "signature", " | ", signature)
@@ -335,7 +340,7 @@ function createSignatureAuth(key, args, conf)
         kong.service.request.set_body(args)
     end
 
-    return sha256Signature(queryString..key)
+    return sha256Openssl(queryString..key)
 end
 
 
