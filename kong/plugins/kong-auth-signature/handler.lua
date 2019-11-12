@@ -107,13 +107,12 @@ end
 
 function createSignatureAuth(key, args, conf)
 
+    kong.log("request_input", cjson.decode(args))
     local queryString = ""
     local sargs = sortKeySignature(args, conf)
     for _, v in pairs(sargs) do
 
-        if queryString ~= "null" and queryString ~= nil then
-            queryString = queryString .. v
-        end
+        queryString = queryString .. v
     end
 
     local method = string.lower(kong.request.get_method())
