@@ -237,10 +237,14 @@ local function sha256(msg)
             num2s(H[5], 4) .. num2s(H[6], 4) .. num2s(H[7], 4) .. num2s(H[8], 4))
 end
 
+local function hex_encode(str) -- From prosody's util.hex
+    return (str:gsub(".", CHAR_TO_HEX))
+  end
+
 local function sha256Signature(msg)
     local sha256 = resty_sha256:new()
     sha256:update(msg)
-    return sha256:final()
+    return hex_encode(sha256:final())
 end
 
 function parseBody(conf)
