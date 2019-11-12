@@ -111,7 +111,8 @@ function createSignatureAuth(key, args, conf)
     local sargs = sortKeySignature(args, conf)
     for _, v in pairs(sargs) do
 
-        queryString = queryString .. v
+        if queryString ~= "null" and queryString ~= nil:
+            queryString = queryString .. v
     end
 
     local method = string.lower(kong.request.get_method())
