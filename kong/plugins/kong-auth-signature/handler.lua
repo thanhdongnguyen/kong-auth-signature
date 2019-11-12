@@ -24,6 +24,13 @@ local lower = string.lower
 Auth.VERSION = "0.1.0-4"
 Auth.PRIORITY = 999
 
+local CHAR_TO_HEX = {};
+for i = 0, 255 do
+  local char = string.char(i)
+  local hex = string.format("%02x", i)
+  CHAR_TO_HEX[char] = hex
+end
+
 function Auth:new()
     Auth.super.new(self, "kong-auth-signature")
 end
